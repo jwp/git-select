@@ -43,7 +43,7 @@ Select `postgresql` from py-postgresql:
 git select --branch=v1.3 https://github.com/python-postgres/fe postgresql
 ```
 
-Re-mapped to a different directory:
+Remapped to a different directory:
 
 ```bash
 git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/./pg
