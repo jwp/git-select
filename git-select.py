@@ -17,6 +17,20 @@ sparse_clone_options = [
 	'--branch', # Optiona Argument supplied by usage context.
 ]
 
+def identify_selections(rpaths):
+	"""
+	# Identify how the repository path is to be mapped locally.
+	# Use '/./' as the means to identify re-mapped paths.
+	"""
+	for x in rpaths:
+		try:
+			repo_path, map_path = x.split('/./', 1)
+		except ValueError:
+			repo_path = x
+			map_path = x
+
+		yield (repo_path, map_path)
+
 def git(tree, subcmd, *, command='git'):
 	return [
 		command,
@@ -36,19 +50,9 @@ def main(argv):
 		branch = argv[1].split('=', 1)[1]
 		i = 2
 
-	repo, *rpaths = argv[i:]
-
-	# Identify how the repository path is to be mapped locally.
-	# Use '/./' as the means to identify re-mapped paths.
-	selections = []
-	for x in rpaths:
-		try:
-			repo_path, map_path = x.split('/./', 1)
-		except ValueError:
-			repo_path = x
-			map_path = x
-
-		selections.append((repo_path, map_path))
+	repo, *paths = argv[i:]
+	selections = list(identify_selections(paths))
+	rpaths = [x[0] for x in selections]
 
 	# Cache in home for now; temporary location is likely preferrable.
 	cache_root = Path.home() / '.git-select-cache'
@@ -59,11 +63,12 @@ def main(argv):
 
 	if cache.exists():
 		sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
+		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
 		System(git(cache, 'checkout') + ['.'])
 	else:
 		System(['git', 'clone'] + sparse_clone_options + [branch, repo, str(cache)])
-		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + [x[0] for x in selections])
-		System(git(cache, 'switch') + [branch])
+		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
+		System(git(cache, 'switch') + ['--detach', branch])
 
 	targetroot = Path.cwd()
 	for rpath, spath in selections:
