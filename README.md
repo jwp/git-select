@@ -19,8 +19,7 @@ extending the path with `/./local-path`. Where `local-path` is the desired files
 ### Defects
 
 - Limited argument parsing; no --help.
-- Cache is currently permanent. (rm -rf ~/.git-select-cache)
-- Per-commit shallow clones.
+- Per-commit shallow clones; no sharing with persistent cache.
 - No tests.
 - Shell was probably sufficient.
 

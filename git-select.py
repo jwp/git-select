@@ -4,7 +4,8 @@
 # from a specific commit in a repository.
 """
 import sys
-from hashlib import sha256 as Hash
+import os
+from contextlib import ExitStack
 from subprocess import run as System
 from pathlib import Path
 
@@ -39,45 +40,69 @@ def git(tree, subcmd, *, command='git'):
 		subcmd,
 	]
 
+def environ_cache_path():
+	env = os.environ['GITSELECTCACHE']
+	if env.strip():
+		# Non-empty string.
+		return Path(env)
+	else:
+		# Empty setting defaults to home.
+		return Path.home() / '.git-select-cache'
+
+def pcache(ctx, repo, commit) -> Path:
+	from hashlib import sha256 as Hash
+	kh = Hash()
+	kh.update((repo+commit).encode('utf-8'))
+	return environ_cache_path()/kh.hexdigest()/commit
+
+def tcache(ctx, repo, commit) -> Path:
+	from tempfile import TemporaryDirectory as TD
+	t = TD()
+	path = ctx.enter_context(t)
+	return Path(path) / commit
+
 def main(argv):
+	ctx = ExitStack()
+	if 'GITSELECTCACHE' in os.environ:
+		Cache = pcache
+	else:
+		Cache = tcache
+
 	cmd, repo, commit, *paths = argv
 
 	selections = list(identify_selections(paths))
 	rpaths = [x[0] for x in selections]
 
 	# Cache in home for now; temporary location is likely preferrable.
-	cache_root = Path.home() / '.git-select-cache'
-	kh = Hash()
-	kh.update(repo.encode('utf-8'))
-	key = kh.hexdigest()
-	cache = cache_root/key/commit
+	with ctx:
+		cache = Cache(ctx, repo, commit)
 
-	if cache.exists():
-		sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
-		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-		System(git(cache, 'checkout') + ['.'])
-	else:
-		System(['git', 'clone'] + sparse_clone_options + [commit, repo, str(cache)])
-		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-		System(git(cache, 'switch') + ['--detach', commit])
+		if cache.exists():
+			sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
+			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
+			System(git(cache, 'checkout') + ['.'])
+		else:
+			System(['git', 'clone'] + sparse_clone_options + [commit, repo, str(cache)])
+			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
+			System(git(cache, 'switch') + ['--detach', commit])
 
-	targetroot = Path.cwd()
-	for rpath, spath in selections:
-		destination = targetroot.joinpath(spath)
+		targetroot = Path.cwd()
+		for rpath, spath in selections:
+			destination = targetroot.joinpath(spath)
 
-		# Ignore if location is already in use.
-		if destination.exists():
-			sys.stderr.write(f"git-select: skipping {repr(str(destination))} as it already exists\n")
-			continue
+			# Ignore if location is already in use.
+			if destination.exists():
+				sys.stderr.write(f"git-select: skipping {repr(str(destination))} as it already exists\n")
+				continue
 
-		# Only make the leading path of the destination.
-		try:
-			destination.parent.mkdir(parents=True)
-		except FileExistsError:
-			pass
+			# Only make the leading path of the destination.
+			try:
+				destination.parent.mkdir(parents=True)
+			except FileExistsError:
+				pass
 
-		source = cache.joinpath(rpath)
-		source.replace(destination)
+			source = cache.joinpath(rpath)
+			source.replace(destination)
 
 if __name__ == '__main__':
 	main(sys.argv)
