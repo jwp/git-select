@@ -80,7 +80,7 @@ def main(argv):
 		if cache.exists():
 			sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
 			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-			System(git(cache, 'checkout') + ['.'])
+			System(git(cache, 'restore') + ['.'])
 		else:
 			System(['git', 'clone'] + sparse_clone_options + [commit, repo, str(cache)])
 			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
