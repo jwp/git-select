@@ -4,7 +4,7 @@ A Python script implementing a prototype shorthand for extracting repository res
 Think `cp -r`, but with shallow git repositories and sparse checkouts as a source.
 
 While adding a description of a sparse-checkout based installation method to
-[py-postgreql](https://github.com/python-postgres/fe), it became obvious that
+[py-postgreql](https://github.com/python-postgres/fe), it became evident that
 concision would be helpful.
 
 `git-select` performs a sparse checkout on a target repository and recursively copies the
@@ -19,8 +19,9 @@ extending the path with `/./local-path`. Where `local-path` is the desired files
 ### Defects
 
 - Limited argument parsing; no --help.
-- No tag support. (yet)
 - Cache is currently permanent. (rm -rf ~/.git-select-cache)
+- No tag support. (yet)
+- No tests.
 - Shell was probably sufficient.
 
 ### Installation
@@ -73,6 +74,9 @@ git cp https://github.com/python-postgres/fe#v1.3/postgresql ./pg
 Where the trailing slash indicates that no remapping should be performed.
 
 ### Rationale
+
+Likely implemented dozens of times with plain clones,
+this implementation leverages shallow clones and sparse checkouts.
 
 Ultimately, this is to ease the deployment of software that can be integrated with `cp -r` given
 that resources were already available on the filesystem. For many pure-Python projects, no
