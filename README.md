@@ -22,20 +22,31 @@ This will not be published to PyPI.
 
 ```bash
 git clone https://github.com/jwp/git-select jwp-git-select
+# Or any directory in PATH. '~/.gitbin' has no special semantics.
+mkdir ~/.gitbin
+cp jwp-git-select/git-select.py ~/.gitbin/git-select
+chmod a+x ~/.gitbin/git-select
+# If necessary.
+PATH="$PATH:$HOME/.gitbin"
 ```
 
+The script will be executed using `/usr/bin/env python3` by default.
+
 ## Usage
+
+Presumes that installation was performed; alternatively, execute using Python
+directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
 
 Select `postgresql` from py-postgresql:
 
 ```bash
-python3 git-select.py --branch=v1.3 https://github.com/python-postgres/fe postgresql
+git select --branch=v1.3 https://github.com/python-postgres/fe postgresql
 ```
 
 Re-mapped to a different directory:
 
 ```bash
-python3 git-select.py --branch=v1.3 https://github.com/python-postgres/fe postgresql/./pg
+git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/./pg
 ```
 
 ## Repository Slice References
