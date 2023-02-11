@@ -1,11 +1,11 @@
 ## Extract Specific Resources from git Repositories
 
-A Python script implementing a prototype shorthand for sparse checkouts.
-This has only been subject to brief manual testing with Python 3.11.
+A Python script implementing a prototype shorthand for extracting repository resources.
+Think `cp -r`, but with shallow git repositories and sparse checkouts as a source.
 
 While adding a description of a sparse-checkout based installation method to
 [py-postgreql](https://github.com/python-postgres/fe), it became obvious that
-concision was necessary.
+concision would be helpful.
 
 `git-select` performs a sparse checkout on a target repository and recursively copies the
 cited repository paths into the filesystem, relative to the working directory.
@@ -14,7 +14,7 @@ or permentantly for future use.
 
 Directory structure is maintained by default; any leading paths to a particular repository
 sub-directory will be maintained. Optionally, the selected resource may be remapped by
-extending the path with `/./local-path`. Where `local-path` is the desired local destination.
+extending the path with `/./local-path`. Where `local-path` is the desired filesystem destination.
 
 ### Defects
 
