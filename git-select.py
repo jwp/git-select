@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 # Perform the necessary series of git operations to retrieve a set of subdirectories
-# from a specific branch in a repository.
+# from a specific commit in a repository.
 """
 import sys
 from hashlib import sha256 as Hash
 from subprocess import run as System
 from pathlib import Path
 
-default_branch = 'master'
+default_commit = 'master'
 sparse_clone_options = [
 	'--sparse',
 	'--filter=blob:none',
@@ -40,17 +40,8 @@ def git(tree, subcmd, *, command='git'):
 	]
 
 def main(argv):
-	branch = default_branch
-	i = 1
+	cmd, repo, commit, *paths = argv
 
-	if argv[1] == '--branch':
-		branch = argv[2]
-		i = 3
-	elif argv[1].startswith('--branch='):
-		branch = argv[1].split('=', 1)[1]
-		i = 2
-
-	repo, *paths = argv[i:]
 	selections = list(identify_selections(paths))
 	rpaths = [x[0] for x in selections]
 
@@ -59,16 +50,16 @@ def main(argv):
 	kh = Hash()
 	kh.update(repo.encode('utf-8'))
 	key = kh.hexdigest()
-	cache = cache_root/key/branch
+	cache = cache_root/key/commit
 
 	if cache.exists():
 		sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
 		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
 		System(git(cache, 'checkout') + ['.'])
 	else:
-		System(['git', 'clone'] + sparse_clone_options + [branch, repo, str(cache)])
+		System(['git', 'clone'] + sparse_clone_options + [commit, repo, str(cache)])
 		System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-		System(git(cache, 'switch') + ['--detach', branch])
+		System(git(cache, 'switch') + ['--detach', commit])
 
 	targetroot = Path.cwd()
 	for rpath, spath in selections:

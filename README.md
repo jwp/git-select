@@ -48,19 +48,19 @@ directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
 Select `postgresql` from py-postgresql:
 
 ```bash
-git select --branch=v1.3 https://github.com/python-postgres/fe postgresql
+git select https://github.com/python-postgres/fe v1.3 postgresql
 ```
 
 Remapped to a different directory:
 
 ```bash
-git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/./pg
+git select https://github.com/python-postgres/fe v1.3 postgresql/./pg
 ```
 
 Multiple paths:
 
 ```bash
-git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/types postgresql/protocol
+git select https://github.com/python-postgres/fe v1.3 postgresql/types postgresql/protocol
 ```
 
 ### Repository Slice References
