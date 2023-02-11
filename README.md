@@ -67,7 +67,7 @@ git select https://github.com/python-postgres/fe v1.3 postgresql/types postgresq
 Idea mode. Consolidated IRI syntax may be useful as well:
 
 ```bash
-git cp https://github.com/python-postgres/fe#v1.3/postgresql ./pg
+git cp https://github.com/python-postgres/fe//v1.3#postgresql ./pg
 ```
 
 Where the trailing slash indicates that no remapping should be performed.
