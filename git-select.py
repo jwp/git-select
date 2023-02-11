@@ -58,7 +58,7 @@ def main(argv):
 	cache = cache_root/key/branch
 
 	if cache.exists():
-		sys.stderr.write('git-select: \n')
+		sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
 		System(git(cache, 'checkout') + ['.'])
 	else:
 		System(['git', 'clone'] + sparse_clone_options + [branch, repo, str(cache)])
@@ -68,9 +68,18 @@ def main(argv):
 	targetroot = Path.cwd()
 	for rpath, spath in selections:
 		destination = targetroot.joinpath(spath)
+
+		# Ignore if location is already in use.
 		if destination.exists():
-			sys.stderr.write('git-select: skipping {repr(destination)} as it already exists\n')
+			sys.stderr.write(f"git-select: skipping {repr(str(destination))} as it already exists\n")
 			continue
+
+		# Only make the leading path of the destination.
+		try:
+			destination.parent.mkdir(parents=True)
+		except FileExistsError:
+			pass
+
 		source = cache.joinpath(rpath)
 		source.replace(destination)
 
