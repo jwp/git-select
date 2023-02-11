@@ -1,4 +1,4 @@
-## Extract Resources from Specific Branches in git Repositories
+## Extract Specific Resources from git Repositories
 
 A Python script implementing a prototype shorthand for sparse checkouts.
 This has only been subject to brief manual testing with Python 3.11.
@@ -16,13 +16,14 @@ Directory structure is maintained by default; any leading paths to a particular 
 sub-directory will be maintained. Optionally, the selected resource may be remapped by
 extending the path with `/./local-path`. Where `local-path` is the desired local destination.
 
-## Defects
+### Defects
 
 - Limited argument parsing; no --help.
-- No tag support (yet).
+- No tag support. (yet)
 - Cache is currently permanent. (rm -rf ~/.git-select-cache)
+- Shell was probably sufficient.
 
-## Installation
+### Installation
 
 This will not be published to PyPI.
 
@@ -38,7 +39,7 @@ PATH="$PATH:$HOME/.gitbin"
 
 The script will be executed using `/usr/bin/env python3` by default.
 
-## Usage
+### Usage
 
 Presumes that installation was performed; alternatively, execute using Python
 directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
@@ -55,7 +56,13 @@ Remapped to a different directory:
 git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/./pg
 ```
 
-## Repository Slice References
+Multiple paths:
+
+```bash
+git select --branch=v1.3 https://github.com/python-postgres/fe postgresql/types postgresql/protocol
+```
+
+### Repository Slice References
 
 Idea mode. Consolidated IRI syntax may be useful as well:
 
@@ -65,7 +72,7 @@ git cp https://github.com/python-postgres/fe#v1.3/postgresql ./pg
 
 Where the trailing slash indicates that no remapping should be performed.
 
-## Rationale
+### Rationale
 
 Ultimately, this is to ease the deployment of software that can be integrated with `cp -r` given
 that resources were already available on the filesystem. For many pure-Python projects, no
