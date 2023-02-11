@@ -1,7 +1,7 @@
 ## Extract Specific Resources from git Repositories
 
 A Python script implementing a prototype shorthand for extracting repository resources.
-Think `cp -r`, but with shallow git repositories and sparse checkouts as a source.
+Think `cp -r`, but with shallow clones and sparse checkouts as a source.
 
 While adding a description of a sparse-checkout based installation method to
 [py-postgreql](https://github.com/python-postgres/fe), it became evident that
@@ -13,8 +13,8 @@ The local clone of the repository is kept temporarily for the duration of the pr
 or permanently when `GIT_SELECT_CACHE` environment variable is set to an empty string or a directory
 path. When set to an empty string, the `~/.git-select-cache` path is used.
 
-Directory structure is maintained by default; any leading paths to a particular repository
-sub-directory will be maintained. Optionally, the selected resource may be remapped by
+Directory structure is maintained by default; any leading directories to a particular repository
+path will be maintained. Optionally, the selected resource may be remapped by
 extending the path with `/./local-path`. Where `local-path` is the desired filesystem destination.
 
 ### Defects
@@ -44,7 +44,7 @@ The script will be executed using `/usr/bin/env python3` by default.
 
 Presumes that installation was performed; alternatively, execute using Python
 directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
-Tags should work; whatever `--branch` accepts.
+Tags should work. Whatever `--branch` accepts.
 
 Select `postgresql` from py-postgresql:
 
