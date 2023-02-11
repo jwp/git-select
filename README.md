@@ -12,7 +12,7 @@ paths into the filesystem, relative to the current working directory.
 The local clone of the repository is cached relative to the user's home directory temporarily
 or permentantly for future use.
 
-Directory structure is maintained by default; any leading paths to a paticular repository
+Directory structure is maintained by default; any leading paths to a particular repository
 sub-directory will be maintained. Optionally, the selected resource may be remapped by
 extending the path with `/./local-path`. Where `local-path` is the desired local destination.
 
