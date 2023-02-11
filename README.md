@@ -16,6 +16,12 @@ Directory structure is maintained by default; any leading paths to a particular 
 sub-directory will be maintained. Optionally, the selected resource may be remapped by
 extending the path with `/./local-path`. Where `local-path` is the desired local destination.
 
+## Defects
+
+- Limited argument parsing; no --help.
+- No tag support (yet).
+- Cache is currently permanent. (rm -rf ~/.git-select-cache)
+
 ## Installation
 
 This will not be published to PyPI.
