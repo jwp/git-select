@@ -9,8 +9,9 @@ concision would be helpful.
 
 `git-select` performs a sparse checkout on a target repository and recursively copies the
 cited repository paths into the filesystem, relative to the working directory.
-The local clone of the repository is cached relative to the user's home directory temporarily
-or permentantly for future use.
+The local clone of the repository is kept temporarily for the duration of the process
+or permanently when `GIT_SELECT_CACHE` environment variable is set to an empty string or a directory
+path. When set to an empty string, the `~/.git-select-cache` path is used.
 
 Directory structure is maintained by default; any leading paths to a particular repository
 sub-directory will be maintained. Optionally, the selected resource may be remapped by
@@ -43,6 +44,7 @@ The script will be executed using `/usr/bin/env python3` by default.
 
 Presumes that installation was performed; alternatively, execute using Python
 directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
+Tags should work; whatever `--branch` accepts.
 
 Select `postgresql` from py-postgresql:
 

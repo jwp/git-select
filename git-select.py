@@ -9,6 +9,7 @@ from contextlib import ExitStack
 from subprocess import run as System
 from pathlib import Path
 
+env_cache_id = 'GIT_SELECT_CACHE'
 default_commit = 'master'
 sparse_clone_options = [
 	'--sparse',
@@ -41,7 +42,7 @@ def git(tree, subcmd, *, command='git'):
 	]
 
 def environ_cache_path():
-	env = os.environ['GITSELECTCACHE']
+	env = os.environ[env_cache_id]
 	if env.strip():
 		# Non-empty string.
 		return Path(env)
@@ -63,7 +64,7 @@ def tcache(ctx, repo, commit) -> Path:
 
 def main(argv):
 	ctx = ExitStack()
-	if 'GITSELECTCACHE' in os.environ:
+	if env_cache_id in os.environ:
 		Cache = pcache
 	else:
 		Cache = tcache
