@@ -7,8 +7,8 @@ While adding a description of a sparse-checkout based installation method to
 [py-postgreql](https://github.com/python-postgres/fe), it became obvious that
 concision was necessary.
 
-`git-select` performs a sparse checkout on a target repository selecting the cited repository
-paths into the filesystem, relative to the current working directory.
+`git-select` performs a sparse checkout on a target repository and recursively copies the
+cited repository paths into the filesystem, relative to the working directory.
 The local clone of the repository is cached relative to the user's home directory temporarily
 or permentantly for future use.
 
