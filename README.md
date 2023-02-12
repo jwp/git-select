@@ -60,18 +60,28 @@ Select `git-select.py` from jwp/git-select repository:
 
 ```bash
 git select https://github.com/jwp/git-select main git-select.py
+test -e git-select.py
 ```
 
 Remapped to a different local path:
 
 ```bash
 git select https://github.com/jwp/git-select main git-select.py/./gs.py
+test -e gs.py
 ```
 
 Copying multiple paths:
 
 ```bash
 git select https://github.com/jwp/git-select main git-select.py README.md
+test -e git-select.py && test -e README.md
+```
+
+Remapped leading path using trailing `/`:
+
+```bash
+git select https://github.com/jwp/git-select main git-select.py/./new/path/
+test -e new/path/git-select.py
 ```
 
 ### Rationale
