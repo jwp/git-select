@@ -5,6 +5,7 @@
 """
 import sys
 import os
+from dataclasses import dataclass
 from contextlib import ExitStack
 from subprocess import run as System
 from pathlib import Path
@@ -33,6 +34,26 @@ def identify_selections(rpaths):
 
 		yield (repo_path, map_path)
 
+@dataclass
+class ResourceTransfer(object):
+	rt_repository: str
+	rt_snapshot: str
+	rt_paths: list[str]
+	rt_local_mappings: list[str]
+
+	@classmethod
+	def from_selections(Class, repo, snapshot, selections):
+		rp = []
+		lm = []
+		for p, m in selections:
+			rp.append(p)
+			lm.append(m)
+		return Class(repo, snapshot, rp, lm)
+
+	def translate(self, origin:Path, destination:Path):
+		for rpath, spath in zip(self.rt_paths, self.rt_local_mappings):
+			yield origin.joinpath(rpath), destination.joinpath(spath)
+
 def git(tree, subcmd, *, command='git'):
 	return [
 		command,
@@ -50,60 +71,56 @@ def environ_cache_path():
 		# Empty setting defaults to home.
 		return Path.home() / '.git-select-cache'
 
-def pcache(ctx, repo, commit) -> Path:
+def pcache(ctx, rtx) -> Path:
 	from hashlib import sha256 as Hash
 	kh = Hash()
-	kh.update((repo+commit).encode('utf-8'))
-	return environ_cache_path()/kh.hexdigest()/commit
+	kh.update((rtx.rt_repository).encode('utf-8'))
+	return environ_cache_path()/kh.hexdigest()/rtx.rt_snapshot
 
-def tcache(ctx, repo, commit) -> Path:
+def tcache(ctx, rtx) -> Path:
 	from tempfile import TemporaryDirectory as TD
 	t = TD()
 	path = ctx.enter_context(t)
-	return Path(path) / commit
+	return Path(path) / rtx.rt_snapshot
+
+def execute_transfer(ctx, rtx:ResourceTransfer, clone:Path, fsroot:Path):
+	# Cache in home for now; temporary location is likely preferrable.
+	if clone.exists():
+		sys.stderr.write(f"git-select: Using cached clone {repr(str(clone))}.\n")
+		System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
+		System(git(clone, 'restore') + ['.'])
+	else:
+		System(['git', 'clone'] + sparse_clone_options + [
+			rtx.rt_snapshot, rtx.rt_repository, str(clone)
+		])
+		System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
+		System(git(clone, 'switch') + ['--detach', rtx.rt_snapshot])
+
+	for rpath, spath in rtx.translate(clone, fsroot):
+		# Ignore if location is already in use.
+		if spath.exists():
+			sys.stderr.write(f"git-select: skipping {repr(str(spath))} as it already exists\n")
+			continue
+
+		# Only make the leading path.
+		try:
+			spath.parent.mkdir(parents=True)
+		except FileExistsError:
+			pass
+
+		# Move if possible, if clone is reused, git-restore will be ran.
+		rpath.replace(spath)
 
 def main(argv):
-	ctx = ExitStack()
-	if env_cache_id in os.environ:
-		Cache = pcache
-	else:
-		Cache = tcache
-
 	cmd, repo, commit, *paths = argv
-
-	selections = list(identify_selections(paths))
-	rpaths = [x[0] for x in selections]
-
-	# Cache in home for now; temporary location is likely preferrable.
-	with ctx:
-		cache = Cache(ctx, repo, commit)
-
-		if cache.exists():
-			sys.stderr.write(f"git-select: Using cached clone {repr(str(cache))}.\n")
-			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-			System(git(cache, 'restore') + ['.'])
+	rtx = ResourceTransfer.from_selections(repo, commit, identify_selections(paths))
+	with ExitStack() as ctx:
+		if env_cache_id in os.environ:
+			cache = pcache(ctx, rtx)
 		else:
-			System(['git', 'clone'] + sparse_clone_options + [commit, repo, str(cache)])
-			System(git(cache, 'sparse-checkout') + ['set', '--no-cone'] + rpaths)
-			System(git(cache, 'switch') + ['--detach', commit])
+			cache = tcache(ctx, rtx)
 
-		targetroot = Path.cwd()
-		for rpath, spath in selections:
-			destination = targetroot.joinpath(spath)
-
-			# Ignore if location is already in use.
-			if destination.exists():
-				sys.stderr.write(f"git-select: skipping {repr(str(destination))} as it already exists\n")
-				continue
-
-			# Only make the leading path of the destination.
-			try:
-				destination.parent.mkdir(parents=True)
-			except FileExistsError:
-				pass
-
-			source = cache.joinpath(rpath)
-			source.replace(destination)
+		execute_transfer(ctx, rtx, cache, Path.cwd())
 
 if __name__ == '__main__':
 	main(sys.argv)
