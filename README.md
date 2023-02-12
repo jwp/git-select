@@ -87,7 +87,17 @@ Where the trailing slash indicates that no remapping should be performed.
 Likely implemented dozens of times with plain clones,
 this implementation leverages shallow clones and sparse checkouts.
 
-Ultimately, this is to ease the deployment of software that can be integrated with `cp -r` given
+Primarily, this is to ease the deployment of software that can be integrated with `cp -r` given
 that resources were already available on the filesystem. For many pure-Python projects, no
 processing of the source is required for usage. When that is the case, deploying to a temporary
 package directory can be the preferred means of installation for informal environments.
+
+### Alternatives
+
+If only temporary clones were used,
+services like `https://raw.githubusercontent.com` *could* provide a superior solution by providing
+access to archives of repository "slices". However, without some attempt to standardize the means to
+resolve the access point, we would be subjected to duplicate repository identities for each
+host provider. Using a single canonical IRI (SCM Repository) has the advantage of reducing the
+required knowledge. It would be possible to achieve this with HTTP, but I have not seen an
+implementation in the wild.
