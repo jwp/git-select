@@ -91,8 +91,8 @@ services like `https://raw.githubusercontent.com` *could* provide a superior sol
 access to archives of repository "slices". However, without some attempt to standardize the means to
 resolve the access point, we would be subjected to duplicate repository identities for each
 host provider. Using a single canonical IRI (SCM Repository) has the advantage of reducing the
-required knowledge. It would be possible to achieve this with HTTP, but I have not seen an
-implementation in the wild.
+required knowledge. It is possible to achieve this with HTTP without a parallel service, but
+no providers appear to offer the feature.
 
 `git cp` may be a better name. Consolidated IRI syntax may be useful as well:
 
