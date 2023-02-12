@@ -24,10 +24,22 @@ extending the path with `/./local-path`. Where `local-path` is the desired files
 
 This will not be published to PyPI.
 
+From a raw github resource:
+
+```bash
+# Or any directory in PATH. '~/.gitbin' has no special semantics.
+(pathdir="$HOME/.gitbin"
+test -e "$pathdir" || mkdir "$pathdir"
+curl https://raw.githubusercontent.com/jwp/git-select/main/git-select.py >"$pathdir/git-select"
+chmod a+x "$pathdir/git-select")
+```
+
+From a usual clone:
+
 ```bash
 git clone https://github.com/jwp/git-select jwp-git-select
 # Or any directory in PATH. '~/.gitbin' has no special semantics.
-mkdir ~/.gitbin
+test -e ~/.gitbin || mkdir ~/.gitbin
 cp jwp-git-select/git-select.py ~/.gitbin/git-select
 chmod a+x ~/.gitbin/git-select
 # If necessary.
