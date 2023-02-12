@@ -109,5 +109,3 @@ no providers appear to offer the feature.
 ```bash
 git cp https://github.com/jwp/git-select//main#git-select.py ./gs
 ```
-
-Where the trailing slash indicates that only the leading path should be remapped.
