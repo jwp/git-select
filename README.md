@@ -1,7 +1,7 @@
 ## Extract Specific Resources from git Repositories
 
 A Python script implementing a prototype shorthand for extracting repository resources.
-Think `cp -r`, but with shallow clones and sparse checkouts as a source.
+Think `cp -r`, but with shallow clones and sparse checkouts providing the source.
 
 `git-select` performs a sparse checkout on a target repository and recursively copies the
 cited repository paths into the filesystem, relative to the working directory.
