@@ -3,10 +3,6 @@
 A Python script implementing a prototype shorthand for extracting repository resources.
 Think `cp -r`, but with shallow clones and sparse checkouts as a source.
 
-While adding a description of a sparse-checkout based installation method to
-[py-postgreql](https://github.com/python-postgres/fe), it became evident that
-concision would be helpful.
-
 `git-select` performs a sparse checkout on a target repository and recursively copies the
 cited repository paths into the filesystem, relative to the working directory.
 The local clone of the repository is kept temporarily for the duration of the process
@@ -46,22 +42,22 @@ Presumes that installation was performed; alternatively, execute using Python
 directly by replacing `git select` with `python3 jwp-git-select/git-select.py`.
 Tags should work. Whatever `--branch` accepts.
 
-Select `postgresql` from py-postgresql:
+Select `git-select.py` from jwp/git-select repository:
 
 ```bash
-git select https://github.com/python-postgres/fe v1.3 postgresql
+git select https://github.com/jwp/git-select main git-select.py
 ```
 
-Remapped to a different directory:
+Remapped to a different local path:
 
 ```bash
-git select https://github.com/python-postgres/fe v1.3 postgresql/./pg
+git select https://github.com/jwp/git-select main git-select.py/./gs.py
 ```
 
-Multiple paths:
+Copying multiple paths:
 
 ```bash
-git select https://github.com/python-postgres/fe v1.3 postgresql/types postgresql/protocol
+git select https://github.com/jwp/git-select main git-select.py README.md
 ```
 
 ### Repository Slice References
@@ -69,7 +65,7 @@ git select https://github.com/python-postgres/fe v1.3 postgresql/types postgresq
 Idea mode. Consolidated IRI syntax may be useful as well:
 
 ```bash
-git cp https://github.com/python-postgres/fe//v1.3#postgresql ./pg
+git cp https://github.com/jwp/git-select//main#git-select.py ./gs
 ```
 
 Where the trailing slash indicates that no remapping should be performed.
