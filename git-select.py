@@ -67,7 +67,11 @@ class ResourceTransfer(object):
 		# structure to real Path instances.
 		"""
 		for rpath, spath in zip(self.rt_paths, self.rt_local_mappings):
-			yield origin.joinpath(rpath), destination.joinpath(spath)
+			src = origin.joinpath(rpath)
+			dst = destination.joinpath(spath)
+
+			# Remap leading path iff spath has trailing '/'.
+			yield src, dst if not spath.endswith('/') else (dst / src.name)
 
 def git(tree, subcmd, *, command='git'):
 	return [
