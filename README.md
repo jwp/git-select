@@ -12,6 +12,7 @@ path. When set to an empty string, the `~/.git-select-cache` path is used.
 Directory structure is maintained by default; any leading directories to a particular repository
 path will be maintained. Optionally, the selected resource may be remapped by
 extending the path with `/./local-path`. Where `local-path` is the desired filesystem destination.
+`/./` being the signal used to identify that the path should be remapped.
 
 ### Defects
 
@@ -72,16 +73,6 @@ Copying multiple paths:
 git select https://github.com/jwp/git-select main git-select.py README.md
 ```
 
-### Repository Slice References
-
-Idea mode. Consolidated IRI syntax may be useful as well:
-
-```bash
-git cp https://github.com/jwp/git-select//main#git-select.py ./gs
-```
-
-Where the trailing slash indicates that no remapping should be performed.
-
 ### Rationale
 
 Likely implemented dozens of times with plain clones,
@@ -92,7 +83,7 @@ that resources were already available on the filesystem. For many pure-Python pr
 processing of the source is required for usage. When that is the case, deploying to a temporary
 package directory can be the preferred means of installation for informal environments.
 
-### Alternatives
+### Alternatives and Discussion
 
 If only temporary clones were used,
 services like `https://raw.githubusercontent.com` *could* provide a superior solution by providing
@@ -101,3 +92,11 @@ resolve the access point, we would be subjected to duplicate repository identiti
 host provider. Using a single canonical IRI (SCM Repository) has the advantage of reducing the
 required knowledge. It would be possible to achieve this with HTTP, but I have not seen an
 implementation in the wild.
+
+`git cp` may be a better name. Consolidated IRI syntax may be useful as well:
+
+```bash
+git cp https://github.com/jwp/git-select//main#git-select.py ./gs
+```
+
+Where the trailing slash indicates that no remapping should be performed.
