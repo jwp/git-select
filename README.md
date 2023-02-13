@@ -120,3 +120,7 @@ git cp -@main https://github.com/jwp/git-select#/git-select.py ./gs
 Remapping paths could be supported using `./` and `/` as signals. Where a path argument starting
 with either `./` or `/` indicates that the previous repository path should be renamed when
 the copy is performed.
+
+Identifying this tool under the `git-` namespace primarily fits categorically. Most git tools
+work within the realm of a repository. This tool is managing repositories. Generalizing it to
+work with archives or VFS's may be more reasonable.
