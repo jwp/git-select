@@ -94,6 +94,10 @@ that resources were already available on the filesystem. For many pure-Python pr
 processing of the source is required for usage. When that is the case, deploying to a temporary
 package directory can be the preferred means of installation for informal environments.
 
+`/./` is the chosen remapping signal as `/./` is *usually* a no-op when present in filesystem
+paths; worst case with most environments is that a user has to resolve any `.` in a composed
+path to avoid triggering remapped pathing.
+
 ### Alternatives and Discussion
 
 If only temporary clones were used,
@@ -107,5 +111,11 @@ no providers appear to offer the feature.
 `git cp` may be a better name. Consolidated IRI syntax may be useful as well:
 
 ```bash
-git cp https://github.com/jwp/git-select//main#git-select.py ./gs
+git cp https://github.com/jwp/git-select#main/git-select.py ./gs
+# Or where the commit (branch/tag) is expected to be provided the context.
+git cp -@main https://github.com/jwp/git-select#/git-select.py ./gs
 ```
+
+Remapping paths could be supported using `./` and `/` as signals. Where a path argument starting
+with either `./` or `/` indicates that the previous repository path should be renamed when
+the copy is performed.
