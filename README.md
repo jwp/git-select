@@ -87,7 +87,8 @@ test -e new/path/git-select.py
 ### Rationale
 
 Likely implemented dozens of times with plain clones,
-this implementation leverages shallow clones and sparse checkouts.
+this implementation leverages shallow clones and sparse checkouts to minimize
+data transfers and cache storage requirements.
 
 Primarily, this is to ease the deployment of software that can be integrated with `cp -r` given
 that resources were already available on the filesystem. For many pure-Python projects, no
