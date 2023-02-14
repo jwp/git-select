@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-# Perform the necessary series of git operations to retrieve a set of subdirectories
-# from a specific commit in a repository.
+# Perform the necessary series of git operations to retrieve a set of resources
+# from a specific commit in a git repository.
 """
 import sys
 import os
@@ -17,17 +17,17 @@ sparse_clone_options = [
 	'--filter=blob:none',
 	'--no-checkout',
 	'--depth=1',
-	'--branch', # Optiona Argument supplied by usage context.
+	'--branch', # Option Argument supplied by usage context.
 ]
 
-def identify_selections(rpaths):
+def identify_selections(rpaths, *, signal='/./'):
 	"""
 	# Identify how the repository path is to be mapped locally.
-	# Use '/./' as the means to identify re-mapped paths.
+	# Uses `'/./'` as the means to identify re-mapped paths.
 	"""
 	for x in rpaths:
 		try:
-			repo_path, map_path = x.split('/./', 1)
+			repo_path, map_path = x.split(signal, 1)
 		except ValueError:
 			repo_path = x
 			map_path = x
