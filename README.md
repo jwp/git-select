@@ -17,9 +17,11 @@ extending the path with `/./local-path`. Where `local-path` is the desired files
 ### Defects
 
 - Limited argument parsing; no --help.
+- Noisy status from git commands.
 - Remapping signal `/./` is unusual; a git-cp syntax would be more familiar.
 - Cache should be controllable with arguments.
 - Per-commit shallow clones; no sharing with persistent cache.
+- No concurrency control with persistent cache. Workaround with parallel caches.
 - Shell was probably sufficient.
 
 ### Installation
