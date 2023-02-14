@@ -1,0 +1,145 @@
+#!/bin/sh
+set +e +x
+GIT="$(which git)"
+PYTHON="${PYTHON:-python3}"
+SRC="$(cd "$(dirname "$0")"; pwd)"
+WS="$(mktemp -d)"
+export GIT PYTHON SRC WS
+
+log ()
+{
+	echo >&2 "$@"
+}
+
+Test ()
+{
+	if test "$@"
+	then
+		return 0
+	else
+		log "-> $TEST: failed" '( absurdity test' "$@" ')'
+		exit 1
+	fi
+}
+
+LG ()
+{
+	"$GIT" 2>&1 "$@" | sed 's/^/test-repository: /'
+}
+
+GS ()
+{
+	"$PYTHON" 2>&1 "$SRC/git-select.py" "$@" | sed 's/^/git-select: /'
+}
+
+seal ()
+{
+	export TEST="$1"
+	local tmp="$(mktemp -d)"
+	(cd "$tmp" || exit
+		if ("$1")
+		then
+			log "-> $TEST: passed"
+		else
+			:
+		fi
+	)
+}
+
+test_sole_resource ()
+{
+	# Citing sole data file.
+	GS "$TR" main data-file
+	Test -e data-file -a x"$(cat data-file)" = x"file-content-1"
+}
+
+test_resource_set ()
+{
+	# Citing multiple files, maintaining directory structure.
+	GS "$TR" main data-file dir/data-file
+	Test -e data-file -a x"$(cat data-file)" = x"file-content-1"
+	Test -e dir/data-file -a x"$(cat dir/data-file)" = x"file-content-2"
+}
+
+test_resource_tree ()
+{
+	# Citing a directory.
+	GS "$TR" main dir
+	Test ! -e data-file
+	Test -e dir/data-file -a x"$(cat dir/data-file)" = x"file-content-2"
+	Test -e dir/sub/data-file -a x"$(cat dir/sub/data-file)" = x"file-content-3"
+}
+
+test_remapped_path ()
+{
+	# Remap a sole data file.
+	GS "$TR" main dir/sub/data-file/./df
+	Test -e df -a x"$(cat df)" = x"file-content-3"
+}
+
+test_remapped_resource_set ()
+{
+	# Citing multiple files, maintaining directory structure.
+	GS "$TR" main data-file/./df1 dir/data-file/./df2
+	Test -e df1 -a x"$(cat df1)" = x"file-content-1"
+	Test -e df2 -a x"$(cat df2)" = x"file-content-2"
+}
+
+test_remapped_subdirectory ()
+{
+	# Remap a subdirectory.
+	GS "$TR" main dir/sub//./d
+
+	# Selected dir/sub; only contains data-file(3)
+	Test -d d
+	Test -e d/data-file -a x"$(cat d/data-file)" = x"file-content-3"
+}
+
+test_remapped_directory ()
+{
+	# Remap a root directory.
+	GS "$TR" main dir/./rd
+
+	# Selected dir/sub; only contains data-file(3)
+	Test -d rd -a -d rd/sub
+	Test -e rd/data-file -a x"$(cat rd/data-file)" = x"file-content-2"
+	Test -e rd/sub/data-file -a x"$(cat rd/sub/data-file)" = x"file-content-3"
+}
+
+test_all ()
+{
+	# Check git-select features using $TR.
+	(seal test_sole_resource)
+	(seal test_resource_set)
+	(seal test_resource_tree)
+	(seal test_remapped_path)
+	(seal test_remapped_resource_set)
+	(seal test_remapped_subdirectory)
+	(seal test_remapped_directory)
+}
+
+(cd "$WS"
+	# Setup test repository.
+	TR="$(pwd)/repo"
+	PCACHE="$(pwd)/test-cache"
+	log "=>" "$SRC/git-select.py" "$GIT" "$PYTHON"
+
+	LG init -b main "$TR"
+	(cd "$TR"
+		mkdir -p dir/sub/empty
+		echo "file-content-1" >data-file
+		echo "file-content-2" >dir/data-file
+		echo "file-content-3" >dir/sub/data-file
+		LG add dir data-file
+		LG commit -m "sole" .
+	)
+
+	# Check git-select features using $TR.
+	log '=> [temporary-cache]'
+	unset GIT_SELECT_CACHE
+	test_all
+
+	export GIT_SELECT_CACHE="$PCACHE"
+	log "=> [persistent-cache $GIT_SELECT_CACHE]"
+	test_all
+)
