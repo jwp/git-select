@@ -106,6 +106,14 @@ test_remapped_directory ()
 	Test -e rd/sub/data-file -a x"$(cat rd/sub/data-file)" = x"file-content-3"
 }
 
+test_remapped_leading_path ()
+{
+	# Remap the leading path of a data-file using a trailing slash.
+	GS "$TR" main dir/sub/data-file/./local-dir/
+	Test -d local-dir
+	Test -e local-dir/data-file -a x"$(cat local-dir/data-file)" = x"file-content-3"
+}
+
 test_all ()
 {
 	# Check git-select features using $TR.
@@ -116,6 +124,7 @@ test_all ()
 	(seal test_remapped_resource_set)
 	(seal test_remapped_subdirectory)
 	(seal test_remapped_directory)
+	(seal test_remapped_leading_path)
 }
 
 (cd "$WS"
