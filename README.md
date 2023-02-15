@@ -1,7 +1,7 @@
 ## Extract Specific Resources from git Repositories
 
 `git-select` is a Python script providing a shorthand for extracting resources from git repositories.
-Much like `cp -r`, but with shallow clones and sparse checkouts providing the source file.
+Similar to `cp -r`, but with shallow clones and sparse checkouts providing the source files.
 
 `git-select` performs a sparse checkout on a target repository and recursively copies the
 cited repository paths into the filesystem, relative to the working directory.
@@ -106,23 +106,28 @@ path to avoid triggering remapped pathing.
 If only temporary clones were used,
 services like `https://raw.githubusercontent.com` *could* provide a superior solution by providing
 access to archives of repository "slices". However, without some attempt to standardize the means to
-resolve the access point, we would be subjected to duplicate repository identities for each
+resolve the access point, users would be subjected to duplicate repository identities for each
 host provider. Using a single canonical IRI (SCM Repository) has the advantage of reducing the
 required knowledge. It is possible to achieve this with HTTP without a parallel service, but
 no providers appear to offer the feature.
 
-`git cp` may be a better name. Consolidated IRI syntax may be useful as well:
-
-```bash
-git cp https://github.com/jwp/git-select#main/git-select.py ./gs
-# Or where the commit (branch/tag) is expected to be provided the context.
-git cp -@main https://github.com/jwp/git-select#/git-select.py ./gs
-```
-
-Remapping paths could be supported using `./` and `/` as signals. Where a path argument starting
-with either `./` or `/` indicates that the previous repository path should be renamed when
-the copy is performed.
-
 Identifying this tool under the `git-` namespace primarily fits categorically. Most git tools
 work within the realm of a repository. This tool is managing repositories. Generalizing it to
 work with archives or VFS's may be more reasonable.
+
+#### Copy Syntax
+
+`git-select` is semantically similar to POSIX `cp`, but has one significant difference.
+The source file is always, conceptually, from a virtual filesystem. The mechanics of how
+the copy is performed is irrelevant.
+
+Using the traditional `cp` syntax has merit in that familiarity can be leveraged in order
+to make usage seamless for those with experience. However, unlike copy, the usual case
+will be a single path whose source name will be consistent with the target name. The
+remapping syntax is provided for exceptional cases so that additional intermediates
+are not required.
+
+Consideration should also be given to the idea that `git-select`, in whatever form, would
+provide the implementation for a consistent `cp` operation. If a git repository were to
+referenced by a virtual filesystem interface, a familiar `cp` operation could be implemented
+using `git-select`.
