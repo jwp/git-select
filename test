@@ -24,11 +24,13 @@ Test ()
 
 LG ()
 {
+	# Repository initialization.
 	"$GIT" 2>&1 "$@" | sed 's/^/test-repository: /'
 }
 
 GS ()
 {
+	set -o pipefail
 	"$PYTHON" 2>&1 "$SRC/git-select.py" "$@" | sed 's/^/git-select: /'
 }
 
@@ -114,17 +116,46 @@ test_remapped_leading_path ()
 	Test -e local-dir/data-file -a x"$(cat local-dir/data-file)" = x"file-content-3"
 }
 
+test_no_such_repository ()
+{
+	GS "$TR/../fs-void" main data-file
+	r=$?
+	Test ! -e data-file
+	Test $r -ne 0
+}
+
+test_no_such_snapshot ()
+{
+	GS "$TR" no-such-commit data-file
+	r=$?
+	Test ! -e data-file
+	Test $r -ne 0
+}
+
+test_no_such_resource ()
+{
+	GS "$TR" main no-such-data-file
+	r=$?
+	Test ! -e no-such-data-file
+	Test $r -ne 0
+}
+
 test_all ()
 {
 	# Check git-select features using $TR.
 	(seal test_sole_resource)
 	(seal test_resource_set)
 	(seal test_resource_tree)
+
 	(seal test_remapped_path)
 	(seal test_remapped_resource_set)
 	(seal test_remapped_subdirectory)
 	(seal test_remapped_directory)
 	(seal test_remapped_leading_path)
+
+	(seal test_no_such_repository)
+	(seal test_no_such_snapshot)
+	(seal test_no_such_resource)
 }
 
 (cd "$WS"

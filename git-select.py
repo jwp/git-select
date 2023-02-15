@@ -116,16 +116,18 @@ def execute_transfer(ctx, rtx:ResourceTransfer, clone:Path, fsroot:Path):
 	# Files will be directly moved out of the work tree with pathlib.Path.replace,
 	# and, in the case of a persistent cache, reinstated with git-restore.
 	"""
+	cr = (lambda x: x.check_returncode())
+
 	if clone.exists():
 		sys.stderr.write(f"git-select: Using cached clone {repr(str(clone))}.\n")
-		System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
-		System(git(clone, 'restore') + ['.'])
+		cr(System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths))
+		cr(System(git(clone, 'restore') + ['.']))
 	else:
-		System(['git', 'clone'] + sparse_clone_options + [
+		cr(System(['git', 'clone'] + sparse_clone_options + [
 			rtx.rt_snapshot, rtx.rt_repository, str(clone)
-		])
-		System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
-		System(git(clone, 'switch') + ['--detach', rtx.rt_snapshot])
+		]))
+		cr(System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths))
+		cr(System(git(clone, 'switch') + ['--detach', rtx.rt_snapshot]))
 
 	c = 0
 	# Translate the relative repository paths and remappings into actual filesystem Paths.
