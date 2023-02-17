@@ -3,8 +3,9 @@ set +e +x
 GIT="$(which git)"
 PYTHON="${PYTHON:-python3}"
 SRC="$(cd "$(dirname "$0")"; pwd)"
+SCRIPT="$SRC/$(basename "$0")"
 WS="$(mktemp -d)"
-export GIT PYTHON SRC WS
+export GIT PYTHON SRC SCRIPT WS
 
 log ()
 {
@@ -30,8 +31,8 @@ LG ()
 
 GS ()
 {
-	set -o pipefail
-	"$PYTHON" 2>&1 "$SRC/git-select.py" "$@" | sed 's/^/git-select: /'
+	(set -o pipefail
+	"$PYTHON" 2>&1 "$SRC/git-select.py" "$@" | sed 's/^/git-select: /')
 }
 
 seal ()
@@ -140,22 +141,13 @@ test_no_such_resource ()
 	Test $r -ne 0
 }
 
-test_all ()
+reveal ()
 {
 	# Check git-select features using $TR.
-	(seal test_sole_resource)
-	(seal test_resource_set)
-	(seal test_resource_tree)
-
-	(seal test_remapped_path)
-	(seal test_remapped_resource_set)
-	(seal test_remapped_subdirectory)
-	(seal test_remapped_directory)
-	(seal test_remapped_leading_path)
-
-	(seal test_no_such_repository)
-	(seal test_no_such_snapshot)
-	(seal test_no_such_resource)
+	for tid in $(sed -n 's/^\(test_.*\) ()$/\1/p' < "$SCRIPT")
+	do
+		(seal $tid)
+	done
 }
 
 (cd "$WS"
@@ -177,9 +169,9 @@ test_all ()
 	# Check git-select features using $TR.
 	log '=> [temporary-cache]'
 	unset GIT_SELECT_CACHE
-	test_all
+	reveal
 
 	export GIT_SELECT_CACHE="$PCACHE"
 	log "=> [persistent-cache $GIT_SELECT_CACHE]"
-	test_all
+	reveal
 )
