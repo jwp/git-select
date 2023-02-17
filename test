@@ -27,13 +27,19 @@ log ()
 	echo >&2 "$@"
 }
 
+Fail ()
+{
+	log "-> $TEST: failed" '(' "$@" ')'
+	exit 1
+}
+
 Test ()
 {
 	if test "$@"
 	then
 		return 0
 	else
-		log "-> $TEST: failed" '( absurdity test' "$@" ')'
+		Fail absurdity test "$@"
 		exit 1
 	fi
 }
@@ -41,13 +47,19 @@ Test ()
 LG ()
 {
 	# Repository initialization.
-	"$GIT" 2>&1 "$@" | sed 's/^/test-repository: /'
+	(set -o pipefail
+	"$GIT" 2>&1 "$@" | sed 's/^/test-repository: /')
 }
 
 GS ()
 {
 	(set -o pipefail
 	"$PYTHON" 2>&1 "$SRC/git-select.py" "$@" | sed 's/^/git-select: /')
+}
+
+gsf ()
+{
+	Fail "non-zero git-select status"
 }
 
 seal ()
@@ -67,14 +79,14 @@ seal ()
 test_sole_resource ()
 {
 	# Citing sole data file.
-	GS "$TR" main data-file
+	GS "$TR" main data-file || gsf
 	Test -e data-file -a x"$(cat data-file)" = x"file-content-1"
 }
 
 test_resource_set ()
 {
 	# Citing multiple files, maintaining directory structure.
-	GS "$TR" main data-file dir/data-file
+	GS "$TR" main data-file dir/data-file || gsf
 	Test -e data-file -a x"$(cat data-file)" = x"file-content-1"
 	Test -e dir/data-file -a x"$(cat dir/data-file)" = x"file-content-2"
 }
@@ -82,7 +94,7 @@ test_resource_set ()
 test_resource_tree ()
 {
 	# Citing a directory.
-	GS "$TR" main dir
+	GS "$TR" main dir || gsf
 	Test ! -e data-file
 	Test -e dir/data-file -a x"$(cat dir/data-file)" = x"file-content-2"
 	Test -e dir/sub/data-file -a x"$(cat dir/sub/data-file)" = x"file-content-3"
@@ -91,14 +103,14 @@ test_resource_tree ()
 test_remapped_path ()
 {
 	# Remap a sole data file.
-	GS "$TR" main dir/sub/data-file/./df
+	GS "$TR" main dir/sub/data-file/./df || gsf
 	Test -e df -a x"$(cat df)" = x"file-content-3"
 }
 
 test_remapped_resource_set ()
 {
 	# Citing multiple files, maintaining directory structure.
-	GS "$TR" main data-file/./df1 dir/data-file/./df2
+	GS "$TR" main data-file/./df1 dir/data-file/./df2 || gsf
 	Test -e df1 -a x"$(cat df1)" = x"file-content-1"
 	Test -e df2 -a x"$(cat df2)" = x"file-content-2"
 }
@@ -106,7 +118,7 @@ test_remapped_resource_set ()
 test_remapped_subdirectory ()
 {
 	# Remap a subdirectory.
-	GS "$TR" main dir/sub//./d
+	GS "$TR" main dir/sub//./d || gsf
 
 	# Selected dir/sub; only contains data-file(3)
 	Test -d d
@@ -116,7 +128,7 @@ test_remapped_subdirectory ()
 test_remapped_directory ()
 {
 	# Remap a root directory.
-	GS "$TR" main dir/./rd
+	GS "$TR" main dir/./rd || gsf
 
 	# Selected dir/sub; only contains data-file(3)
 	Test -d rd -a -d rd/sub
@@ -127,7 +139,7 @@ test_remapped_directory ()
 test_remapped_leading_path ()
 {
 	# Remap the leading path of a data-file using a trailing slash.
-	GS "$TR" main dir/sub/data-file/./local-dir/
+	GS "$TR" main dir/sub/data-file/./local-dir/ || gsf
 	Test -d local-dir
 	Test -e local-dir/data-file -a x"$(cat local-dir/data-file)" = x"file-content-3"
 }
