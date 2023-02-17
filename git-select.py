@@ -5,6 +5,7 @@
 """
 import sys
 import os
+from functools import partial
 from dataclasses import dataclass
 from contextlib import ExitStack
 from subprocess import run as System
@@ -73,7 +74,7 @@ class ResourceTransfer(object):
 			# Remap leading path iff spath has trailing '/'.
 			yield src, dst if not spath.endswith('/') else (dst / src.name)
 
-def git(tree, subcmd, *, command='git'):
+def git_prefix(tree, subcmd, *, command='git'):
 	return [
 		command,
 		'--work-tree=' + str(tree),
@@ -109,25 +110,27 @@ def scache(env, ctx, rtx) -> Path:
 	else:
 		return tcache(ctx, rtx)
 
-def execute_transfer(ctx, rtx:ResourceTransfer, clone:Path, fsroot:Path):
+def execute_transfer(ctx, git, rtx:ResourceTransfer, clone:Path, fsroot:Path):
 	"""
 	# Perform the transfer by leveraging a sparse checkout against a shallow clone.
 
 	# Files will be directly moved out of the work tree with pathlib.Path.replace,
 	# and, in the case of a persistent cache, reinstated with git-restore.
 	"""
-	cr = (lambda x: x.check_returncode())
+
+	system = partial(System, check=True)
+	g = partial(git_prefix, command=git)
 
 	if clone.exists():
 		sys.stderr.write(f"git-select: Using cached clone {repr(str(clone))}.\n")
-		cr(System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths))
-		cr(System(git(clone, 'restore') + ['.']))
+		system(g(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
+		system(g(clone, 'restore') + ['.'])
 	else:
-		cr(System(['git', 'clone'] + sparse_clone_options + [
+		system([git, 'clone'] + sparse_clone_options + [
 			rtx.rt_snapshot, rtx.rt_repository, str(clone)
-		]))
-		cr(System(git(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths))
-		cr(System(git(clone, 'switch') + ['--detach', rtx.rt_snapshot]))
+		])
+		system(g(clone, 'sparse-checkout') + ['set', '--no-cone'] + rtx.rt_paths)
+		system(g(clone, 'switch') + ['--detach', rtx.rt_snapshot])
 
 	c = 0
 	# Translate the relative repository paths and remappings into actual filesystem Paths.
@@ -161,9 +164,10 @@ def main(argv):
 	# Interpret command arguments as a ResourceTransfer and execute it.
 	"""
 
+	git = os.environ.get('GIT') or 'git'
 	rtx = ResourceTransfer.from_selections(*structure(argv))
 	with ExitStack() as ctx:
-		execute_transfer(ctx, rtx, scache(os.environ, ctx, rtx), Path.cwd())
+		execute_transfer(ctx, git, rtx, scache(os.environ, ctx, rtx), Path.cwd())
 
 if __name__ == '__main__':
 	main(sys.argv)
