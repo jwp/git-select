@@ -1,11 +1,26 @@
 #!/bin/sh
 set +e +x
-GIT="$(which git)"
-PYTHON="${PYTHON:-python3}"
-SRC="$(cd "$(dirname "$0")"; pwd)"
-SCRIPT="$SRC/$(basename "$0")"
-WS="$(mktemp -d)"
-export GIT PYTHON SRC SCRIPT WS
+
+if : Dependencies; then
+	if test x"$GIT" == x""
+	then
+		GIT="$(which git)"
+	fi
+
+	if test x"$PYTHON" == x""
+	then
+		PYTHON="$(which python3)"
+	fi
+
+	export GIT PYTHON
+fi
+
+if : Test Environment; then
+	SRC="$(cd "$(dirname "$0")"; pwd)"
+	SCRIPT="$SRC/$(basename "$0")"
+	WS="$(mktemp -d)"
+	export SRC SCRIPT WS
+fi
 
 log ()
 {
