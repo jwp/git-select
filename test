@@ -165,21 +165,26 @@ reveal ()
 	done
 }
 
+mkfixture ()
+{
+	set -e
+	LG init -b main "$1"
+	cd "$1"
+	mkdir -p dir/sub/empty
+	echo "file-content-1" >data-file
+	echo "file-content-2" >dir/data-file
+	echo "file-content-3" >dir/sub/data-file
+	LG add dir data-file
+	LG commit -m "sole" .
+}
+
 (cd "$WS"
 	# Setup test repository.
 	TR="$(pwd)/repo"
 	PCACHE="$(pwd)/test-cache"
 	log "=>" "$SRC/git-select.py" "$GIT" "$PYTHON"
 
-	LG init -b main "$TR"
-	(cd "$TR"
-		mkdir -p dir/sub/empty
-		echo "file-content-1" >data-file
-		echo "file-content-2" >dir/data-file
-		echo "file-content-3" >dir/sub/data-file
-		LG add dir data-file
-		LG commit -m "sole" .
-	)
+	(mkfixture "$TR")
 
 	# Check git-select features using $TR.
 	log '=> [temporary-cache]'
